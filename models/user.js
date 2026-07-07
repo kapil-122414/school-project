@@ -11,6 +11,10 @@ const Register = new Schema(
       type: String,
       required: true,
     },
+    referenceToken: {
+      type: String,
+      default: null,
+    },
   },
 
   {
