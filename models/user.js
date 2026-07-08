@@ -15,6 +15,31 @@ const Register = new Schema(
       type: String,
       default: null,
     },
+    otp: {
+      type: String,
+      default: null,
+    },
+    otpexpire: {
+      type: String,
+      default: null,
+    },
+    otpCount: {
+      type: Number,
+      default: 0,
+    },
+    resetToken: {
+      type: String,
+    },
+    resetTokenExpire: {
+      type: String,
+    },
+    otpDate: {
+      type: Date,
+    },
+
+    lastOtpSentAt: {
+      type: Date,
+    },
   },
 
   {

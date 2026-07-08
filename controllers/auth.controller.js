@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const user = require("../models/user");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+const sendMail = require("../utils/mailsend");
 
 const registerUser = async (req, res) => {
   try {
@@ -116,17 +118,99 @@ const logoutUser = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    const {Email} = req.body;
-    
-    const findEmail = await user.findOne({ Email});
+    const { Email } = req.body;
+
+    const findEmail = await user.findOne({ Email });
 
     if (!findEmail) {
       return res.status(400).json({ message: "Email not found" });
+    }
+
+    const today = new Date();
+    if (
+      !findEmail.otpDate ||
+      findEmail.otpDate.toDateString() !== today.toDateString()
+    ) {
+      findEmail.otpCount = 0;
+    }
+
+    if (findEmail.otpCount >= 5) {
+      return res.status(400).json({
+        message: "You have reached today's OTP limit. Try again tomorrow.",
+      });
+    }
+
+    if (
+      findEmail.lastOtpSentAt &&
+      Date.now() - findEmail.lastOtpSentAt.getTime() < 60 * 1000
+    ) {
+      return res.status(429).json({
+        message: "Please wait 60 seconds before requesting another OTP.",
+      });
+    }
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    findEmail.otpCount += 1;
+    findEmail.otpDate = today;
+    findEmail.lastOtpSentAt = new Date();
+    findEmail.otp = otp;
+    findEmail.resetToken = resetToken;
+    findEmail.otpexpire = Date.now() + 5 * 60 * 1000;
+    findEmail.resetTokenExpire = Date.now() + 10 * 60 * 1000;
+
+    await sendMail(Email, otp);
+    await findEmail.save();
+
+    res.status(200).json({ message: " Otp send success", resetToken });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const otpVerify = async (req, res) => {
+  try {
+    const { resetToken, otp } = req.body;
+    const findUser = await user.findOne({ resetToken });
+
+    if (!findUser) {
+      return res.status(400).json({ message: "invalid request" });
+    }
+    if (findUser.resetTokenExpire < Date.now()) {
+      return res.status(400).json({ message: " reset token expire" });
+    }
+    if (findUser.otpexpire < Date.now()) {
+      return res.status(400).json({ message: "otp expired" });
+    }
+    if (findUser.otp !== otp) {
+      return res.status(400).json({ message: "invaid token" });
+    }
+
+    return res.status(200).json("verify otp");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updatePassword = async (req, res) => {
+  try {
+    const { resetToken, Password } = req.body;
+    const findUser = await user.findOne({ resetToken });
+
+    if (findUser.resetToken !== resetToken) {
+      return res.status(400).json({ message: "not found" });
     }
     res.status(200).json("success");
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-module.exports = { registerUser, loginUser, logoutUser, forgotPassword };
+module.exports = {
+  registerUser,
+  loginUser,
+  logoutUser,
+  forgotPassword,
+  otpVerify,
+  updatePassword,
+};
