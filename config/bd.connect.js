@@ -10,6 +10,7 @@ const connectedbd = async () => {
     console.log("data base connected");
   } catch (error) {
     console.log("dataase not connected");
+    console.error(error);
     process.exit(1);
   }
 };

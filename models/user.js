@@ -28,13 +28,19 @@ const Register = new Schema(
       default: 0,
     },
     resetToken: {
-      type: String,
+      type: Date,
+      default: null,
     },
     resetTokenExpire: {
-      type: String,
+      type: Date,
+      default: null,
     },
     otpDate: {
       type: Date,
+    },
+    otpverify: {
+      type: Boolean,
+      default: false,
     },
 
     lastOtpSentAt: {

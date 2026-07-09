@@ -186,7 +186,8 @@ const otpVerify = async (req, res) => {
     if (findUser.otp !== otp) {
       return res.status(400).json({ message: "invaid token" });
     }
-
+    findUser.otpverify = true;
+    await findUser.save();
     return res.status(200).json("verify otp");
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -198,10 +199,35 @@ const updatePassword = async (req, res) => {
     const { resetToken, Password } = req.body;
     const findUser = await user.findOne({ resetToken });
 
-    if (findUser.resetToken !== resetToken) {
-      return res.status(400).json({ message: "not found" });
+    if (!findUser) {
+      return res.status(400).json({ message: " user not found" });
     }
-    res.status(200).json("success");
+    if (findUser.resetTokenExpire < Date.now()) {
+      return res.status(400).json({ message: " reset token  expire " });
+    }
+    if (!findUser.otpverify) {
+      return res.status(400).json({ message: "otp not verify" });
+    }
+    if (!Password) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+    if (!resetToken) {
+      return res.status(400).json({ message: "Reset token is required" });
+    }
+    const checkPassword = await bcrypt.compare(Password, findUser.Password);
+    if (checkPassword) {
+      return res.status(400).json({ message: "enter the differrnt  password" });
+    }
+
+    const passwordhash = await bcrypt.hash(Password, 10);
+    findUser.Password = passwordhash;
+    findUser.resetToken = null;
+    findUser.resetTokenExpire = null;
+    findUser.otp = null;
+    findUser.otpverify = false;
+    findUser.otpexpire = null;
+    await findUser.save();
+    res.status(200).json({ message: "password update successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
