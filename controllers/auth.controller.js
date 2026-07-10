@@ -172,6 +172,7 @@ const forgotPassword = async (req, res) => {
 const otpVerify = async (req, res) => {
   try {
     const { resetToken, otp } = req.body;
+
     const findUser = await user.findOne({ resetToken });
 
     if (!findUser) {
@@ -197,6 +198,7 @@ const otpVerify = async (req, res) => {
 const updatePassword = async (req, res) => {
   try {
     const { resetToken, Password } = req.body;
+
     const findUser = await user.findOne({ resetToken });
 
     if (!findUser) {

@@ -28,11 +28,11 @@ const Register = new Schema(
       default: 0,
     },
     resetToken: {
-      type: Date,
+      type: String,
       default: null,
     },
     resetTokenExpire: {
-      type: Date,
+      type: String,
       default: null,
     },
     otpDate: {
