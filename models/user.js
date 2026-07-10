@@ -19,6 +19,10 @@ const Register = new Schema(
       type: String,
       default: null,
     },
+    remember_Me: {
+      type:Boolean,
+      default: false,
+    },
     otpexpire: {
       type: String,
       default: null,

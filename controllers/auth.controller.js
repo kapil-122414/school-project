@@ -42,7 +42,7 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const { Email, Password } = req.body;
+    const { Email, Password, remember_Me } = req.body;
 
     const findEmail = await user.findOne({ Email: Email });
     console.log(findEmail);
@@ -55,7 +55,7 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "enter correct password" });
     }
 
-    const Token = jwt.sign(
+    const accessToken = jwt.sign(
       {
         Email: Email,
         Id: findEmail.id,
@@ -66,6 +66,8 @@ const loginUser = async (req, res) => {
       { expiresIn: "1h" },
     );
 
+    const remember = remember_Me ? "30d" : "1d";
+
     const refreshToken = jwt.sign(
       {
         Email: Email,
@@ -75,25 +77,28 @@ const loginUser = async (req, res) => {
       },
       process.env.REFERENCE_KEY,
 
-      { expiresIn: "7d" },
+      { expiresIn: remember },
     );
 
     findEmail.refreshToken = refreshToken;
+
     await findEmail.save();
 
-    res.cookie("token", Token, {
+    res.cookie("token", accessToken, {
       httpOnly: true,
-      secure: false, // localhost ke liye
-      sameSite: "Lax",
+      secure: true,
+      sameSite: "None",
       maxAge: 60 * 60 * 1000,
       path: "/",
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: remember_Me ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
     });
-
-    res.status(200).json({ message: "success", Token, refreshToken });
+    res.status(200).json({ message: "success", accessToken, refreshToken });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
