@@ -93,7 +93,7 @@ const loginUser = async (req, res) => {
       httpOnly: true,
     });
 
-    res.status(200).json({ message: "success", Token });
+    res.status(200).json({ message: "success", Token, refreshToken });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
