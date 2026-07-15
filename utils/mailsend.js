@@ -13,6 +13,13 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+transporter.verify((err) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log("SMTP Ready");
+  }
+});
 
 const sendMail = async (Email, otp) => {
   await transporter.sendMail({
