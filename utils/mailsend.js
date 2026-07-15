@@ -2,11 +2,12 @@ const nodemailer = require("nodemailer");
 const dns = require("dns");
 
 dns.setDefaultResultOrder("ipv4first");
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4, // 👈 yaha add karo
+  service: "gmail",
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
   auth: {
     user: process.env.USER_EMAIL,
     pass: process.env.EMAIL_PASS,
