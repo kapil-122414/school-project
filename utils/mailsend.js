@@ -9,22 +9,26 @@ const transporter = nodemailer.createTransport({
     pass: process.env.BREVO_PASS,
   },
 });
+
 transporter.verify((err) => {
   if (err) {
-    console.log(err);
+    console.log("SMTP Error:", err);
   } else {
     console.log("SMTP Ready");
   }
 });
 
- transporter.sendMail({
-  from: process.env.BREVO_USER,
-  to: Email,
-  subject: "Password Reset OTP",
-  html: `
-    <h2>Password Reset</h2>
-    <h1>${otp}</h1>
-    <p>This OTP will expire in 5 minutes.</p>
-  `,
-});
+const sendMail = async (Email, otp) => {
+  await transporter.sendMail({
+    from: process.env.BREVO_USER,
+    to: Email,
+    subject: "Password Reset OTP",
+    html: `
+      <h2>Password Reset</h2>
+      <h1>${otp}</h1>
+      <p>This OTP will expire in 5 minutes.</p>
+    `,
+  });
+};
+
 module.exports = sendMail;
