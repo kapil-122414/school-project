@@ -17,7 +17,7 @@ transporter.verify((err) => {
   }
 });
 
-await transporter.sendMail({
+ transporter.sendMail({
   from: process.env.BREVO_USER,
   to: Email,
   subject: "Password Reset OTP",
