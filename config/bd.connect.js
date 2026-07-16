@@ -7,11 +7,13 @@ const connectedbd = async () => {
       socketTimeoutMS: 300000,
       connectTimeoutMS: 30000,
     });
-    console.log("data base connected");
+
+    console.log("Database Connected");
   } catch (error) {
-    console.log("dataase not connected");
+    console.log("Database not connected");
+    console.error("Error:", error.message);
     console.error(error);
-    process.exit(1);
+    // process.exit(1);  // abhi comment kar do
   }
 };
 

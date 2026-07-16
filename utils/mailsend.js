@@ -5,11 +5,10 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS,
+    user: process.env.USER_EMAIL,
+    pass: process.env.USER_EMAIL_PASSWORD,
   },
 });
-
 transporter.verify((err) => {
   if (err) {
     console.log("SMTP Error:", err);
@@ -19,16 +18,21 @@ transporter.verify((err) => {
 });
 
 const sendMail = async (Email, otp) => {
-  await transporter.sendMail({
-    from: process.env.BREVO_USER,
+  const info = await transporter.sendMail({
+    from: '"Cut Edge" <cet@globaltravelglob.shop>',
+    replyTo: "cet@globaltravelglob.shop",
     to: Email,
     subject: "Password Reset OTP",
     html: `
-      <h2>Password Reset</h2>
+      <h2>Password Reset OTP</h2>
+      <p>Your OTP is:</p>
       <h1>${otp}</h1>
       <p>This OTP will expire in 5 minutes.</p>
     `,
   });
-};
 
+  console.log("Mail Info:", info);
+
+  return info;
+};
 module.exports = sendMail;
