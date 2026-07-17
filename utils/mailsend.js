@@ -9,15 +9,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.USER_EMAIL_PASSWORD,
   },
 });
-console.log(process.env.USER_EMAIL);
-console.log(process.env.USER_EMAIL_PASSWORD);
-transporter.verify((err) => {
-  if (err) {
-    console.log("SMTP Error:", err);
-  } else {
-    console.log("SMTP Ready");
-  }
-});
 
 const sendMail = async (Email, otp) => {
   const info = await transporter.sendMail({
@@ -32,8 +23,6 @@ const sendMail = async (Email, otp) => {
       <p>This OTP will expire in 5 minutes.</p>
     `,
   });
-
-  console.log("Mail Info:", info);
 
   return info;
 };
