@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 console.log(process.env.USER_EMAIL);
-console.log(process.env.USER_EMAIL_PASSWORD ? "PASS OK" : "PASS MISSING");
+console.log(process.env.USER_EMAIL_PASSWORD);
 transporter.verify((err) => {
   if (err) {
     console.log("SMTP Error:", err);
