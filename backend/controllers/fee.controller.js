@@ -282,11 +282,56 @@ const getplan = async (req, res) => {
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
+
+    const enrichedData = data.map((item) => {
+      const doc = item.toObject();
+      const feeComponent = item.feeComponent;
+
+      let totalfee = 0;
+      let components = [];
+
+      if (feeComponent instanceof Map) {
+        totalfee = Array.from(feeComponent.values()).reduce(
+          (sum, val) => sum + val,
+          0,
+        );
+        components = Array.from(feeComponent.entries()).map(
+          ([name, amount]) => ({ name, amount }),
+        );
+      } else if (feeComponent && typeof feeComponent === "object") {
+        totalfee = Object.values(feeComponent).reduce(
+          (sum, val) => sum + Number(val),
+          0,
+        );
+        components = Object.entries(feeComponent).map(([name, amount]) => ({
+          name,
+          amount: Number(amount),
+        }));
+      }
+
+      const discount = item.otherSetting?.discount || 0;
+      const payable = Math.max(0, totalfee - discount);
+
+      return {
+        ...doc,
+        planName: item.feePlan?.planName,
+        name: item.feePlan?.planName,
+        program: item.feePlan?.program,
+        application: item.feePlan?.application,
+        totalfee,
+        totalAmount: totalfee,
+        discount,
+        payable,
+        payableAmount: payable,
+        components,
+      };
+    });
+
     const totalItem = await fees.countDocuments(filter);
     const totalPages = Math.ceil(totalItem / limit);
     return res.status(200).json({
       success: true,
-      data: data,
+      data: enrichedData,
       page: page,
       limit,
       totalPages,
@@ -332,13 +377,41 @@ const getplanId = async (req, res) => {
 
     const payable = afterDiscount + taxAmount;
 
+    let components = [];
+    const feeComponent = data.feeComponent;
+    if (feeComponent instanceof Map) {
+      components = Array.from(feeComponent.entries()).map(([name, amount]) => ({
+        name,
+        amount,
+      }));
+    } else if (feeComponent && typeof feeComponent === "object") {
+      components = Object.entries(feeComponent).map(([name, amount]) => ({
+        name,
+        amount: Number(amount),
+      }));
+    }
+
+    const enriched = {
+      ...data.toObject(),
+      planName: data.feePlan?.planName,
+      name: data.feePlan?.planName,
+      program: data.feePlan?.program,
+      application: data.feePlan?.application,
+      totalfee: totalFee,
+      totalAmount: totalFee,
+      discount: data.otherSetting?.discount || 0,
+      payable,
+      payableAmount: payable,
+      components,
+    };
+
     return res.status(200).json({
       success: true,
       total: totalFee,
       discount: afterDiscount,
       taxAmount: taxAmount,
       payable: payable,
-      data: data,
+      data: enriched,
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
